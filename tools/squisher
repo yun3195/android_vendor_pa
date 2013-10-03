@@ -38,8 +38,8 @@ fi
 OPTICHARGER=$ANDROID_BUILD_TOP/vendor/pa/tools/opticharger
 QUIET=-q
 DELETE_BINS="applypatch applypatch_static check_prereq recovery updater"
-
 REPACK=$OUT/repack.d
+
 printf "Sanitizing environment..."
 rm -rf $REPACK
 mkdir -p $REPACK
@@ -90,10 +90,10 @@ rm -rf $REPACK/ota/recovery
 
 # Determine what to name the new signed package
 if [ -z "$CYANOGEN_NIGHTLY" ]; then
-	PAVERSION=`grep 'ro.modversion=' $REPACK/ota/system/build.prop | sed -e 's/ro.modversion=//g'`
+	PAVERSION=`grep 'ro.modversion=' $REPACK/ota/system/build.prop | sed -e 's/ro.modversion=//g'`    
 	OVERLAYTARGET=`grep 'ro.pa.family=' $REPACK/ota/system/build.prop | sed -e 's/ro.pa.family=//g'`
 	: ${PAVERSION:=nightly}
-	OUTFILE=$OUT/$PAVERSION.zip
+	OUTFILE=$OUT/$PAVERSION.zip    
 	echo PAVERSION: $PAVERSION
 else
 	OUTFILE=$OUT/update-squished.zip
@@ -134,16 +134,13 @@ img=`basename $OUTFILE`
 cd `dirname $OUTFILE`
 $MD5 $img >$img.md5sum
 echo
-echo "Package complete: $OUTFILE"
 cat $img.md5sum
 echo
 )
 
-echo $OUTFILE > $OUT/romPath
-echo $PAVERSION.zip > $OUT/romName
-
 # Create cache
 printf "Creating installer cache partition..."
+echo
 (
 rm -rf $OUT/cache
 mkdir $OUT/cache
@@ -154,8 +151,29 @@ echo --update_package=CACHE:rom.zip >> $OUT/cache/recovery/command
 echo --update_package=CACHE:gapps.zip >> $OUT/cache/recovery/command
 cp $OUTFILE $OUT/cache/rom.zip
 cp $ANDROID_BUILD_TOP/vendor/pa/prebuilt/gapps/* $OUT/cache/gapps.zip
-mkuserimg.sh -s $OUT/cache $OUT/cache.img ext4 $OUT/cache 500M
+printf "mkuserimg.sh $OUT/cache $OUT/cache.img ext4 tmp 500M"
+echo
+mkuserimg.sh $OUT/cache $OUT/cache.img ext4 /cache 500M
 rm -rf $OUT/cache
 )
+
+# Zip cache image + MD5
+printf "Zipping installer cache partition..."
+echo
+(
+cd $OUT
+echo "zip $QUIET image_$PAVERSION.zip cache.img"
+echo
+zip $QUIET image_$PAVERSION.zip cache.img
+$MD5 image_$PAVERSION.zip >image_$PAVERSION.zip.md5sum
+echo
+cat image_$PAVERSION.zip.md5sum
+echo
+rm -rf cache.img
+)
+
+echo "Package complete: $OUTFILE"
+echo $OUTFILE > $OUT/romPath
+echo $PAVERSION.zip > $OUT/romName
 
 exit 0
