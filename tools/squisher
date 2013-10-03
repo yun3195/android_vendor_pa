@@ -45,7 +45,6 @@ rm -rf $REPACK
 mkdir -p $REPACK
 echo
 
-
 # Unpack the otapackage and opticharge all apks
 mkdir $REPACK/ota
 (
@@ -142,5 +141,21 @@ echo
 
 echo $OUTFILE > $OUT/romPath
 echo $PAVERSION.zip > $OUT/romName
+
+# Create cache
+printf "Creating installer cache partition..."
+(
+rm -rf $OUT/cache
+mkdir $OUT/cache
+mkdir $OUT/cache/recovery
+echo --wipe_data > $OUT/cache/recovery/command
+echo --wipe_cache >> $OUT/cache/recovery/command
+echo --update_package=CACHE:rom.zip >> $OUT/cache/recovery/command
+echo --update_package=CACHE:gapps.zip >> $OUT/cache/recovery/command
+cp $OUTFILE $OUT/cache/rom.zip
+cp $ANDROID_BUILD_TOP/vendor/pa/prebuilt/gapps/* $OUT/cache/gapps.zip
+mkuserimg.sh -s $OUT/cache $OUT/cache.img ext4 $OUT/cache 500M
+rm -rf $OUT/cache
+)
 
 exit 0
