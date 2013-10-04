@@ -1,19 +1,3 @@
-# Required CM packages
-#PRODUCT_PACKAGES += \
-#    Focal \
-#    Development \
-#    LatinIME \
-#    Superuser \
-#    su
-
-# Optional CM packages
-#PRODUCT_PACKAGES += \
-#    VoicePlus \
-#    VideoEditor \
-#    VoiceDialer \
-#    SoundRecorder \
-#    Basic
-
 # Extra tools in CM
 PRODUCT_PACKAGES += \
     openvpn \
